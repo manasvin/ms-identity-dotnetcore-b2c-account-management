@@ -40,6 +40,9 @@ namespace b2c_ms_graph
 
         [JsonProperty(PropertyName = "UsersFileName")]
         public string UsersFileName { get; set; }
+        
+        [JsonProperty(PropertyName = "UsersCSVFileName")]
+        public string UsersCSVFileName { get; set; }
 
     }
 }

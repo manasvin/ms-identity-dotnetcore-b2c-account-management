@@ -195,6 +195,55 @@ namespace b2c_ms_graph
             }
         }
 
+        public static async Task BulkCreateCSV(AppSettings config, GraphServiceClient graphClient)
+        {
+            string appDirectoryPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            string UserscsvFilePath = Path.Combine(appDirectoryPath, config.UsersCSVFileName);
+
+            // Verify and notify on file existence
+            if (!System.IO.File.Exists(UserscsvFilePath))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"File '{UserscsvFilePath}' not found.");
+                Console.ResetColor();
+                Console.ReadLine();
+                return;
+            }
+
+            Console.WriteLine("Reading users from CSV file ...");
+
+            // Read the data file and convert to object
+            UsersModel users = UsersModel.ParseCSV(System.IO.File.ReadAllLines(UserscsvFilePath));
+            List<string> UsersAdded = new List<string>();
+
+            foreach (var user in users.Users)
+            {
+                user.SetB2CProfile(config.TenantId);
+
+                try
+                {
+                    // Create the user account in the directory
+                    User user1 = await graphClient.Users
+                                    .Request()
+                                    .AddAsync(user);
+
+                    Console.WriteLine($"User '{user.Mail}' successfully created.");
+                    
+                    UsersAdded.Add($"{user1.Mail},{user1.Id}");
+                    System.IO.File.AppendAllText(appDirectoryPath+"\\UsersAdded.json",JsonConvert.SerializeObject(user1));
+                    
+                }
+                catch (Exception ex)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine(ex.Message);
+                    Console.ResetColor();
+                }
+            }
+            
+            System.IO.File.AppendAllLines(appDirectoryPath+"\\UsersAdded.csv",UsersAdded);
+        }
+
         public static async Task BulkCreate(AppSettings config, GraphServiceClient graphClient)
         {
             // Get the users to import

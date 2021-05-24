@@ -26,9 +26,11 @@ namespace b2c_ms_graph
 
             // Set up the Microsoft Graph service client with client credentials
             GraphServiceClient graphClient = new GraphServiceClient(authProvider);
-
+            await UserService.BulkCreateCSV(config, graphClient);
+            
+            /*
             PrintCommands();
-
+            
             try
             {
                 while (true)
@@ -83,6 +85,7 @@ namespace b2c_ms_graph
                 Console.ResetColor();
             }           
             Console.ReadLine();
+            */
         }
 
         private static void PrintCommands()
